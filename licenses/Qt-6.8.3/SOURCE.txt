@@ -1,0 +1,1 @@
+Unmodified license texts from https://github.com/qt/qtbase/tree/v6.8.3/LICENSES

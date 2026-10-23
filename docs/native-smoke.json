@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "windows_build": 26200,
+  "elapsed_seconds": 14.156,
+  "cpu_one_core_percent": 4.194,
+  "cpu_whole_machine_percent": 0.175,
+  "working_set_mib": 55.89,
+  "frames": 195,
+  "states": [
+    "flying",
+    "landing",
+    "paused",
+    "perched",
+    "takeoff"
+  ],
+  "available_at_exit": true,
+  "display_mode": "desktop",
+  "display_modes_seen": [
+    "desktop",
+    "front"
+  ],
+  "native_safe_at_exit": true,
+  "physical_work_area": {
+    "left": 0,
+    "top": 0,
+    "right": 3840,
+    "bottom": 2088
+  },
+  "dpi_scale": 1.5,
+  "artwork_scale": 1.5,
+  "checks": [
+    "native child attached and safe",
+    "manual flight reached flying",
+    "paused flight settled with branch",
+    "complete takeoff flight landing cycle",
+    "unavailable host destroyed drawing child",
+    "host recovery recreated safe child",
+    "interaction toggle persisted",
+    "pet did not activate a window",
+    "tray front mode created safe topmost mouse-through surface",
+    "tray hidden mode destroyed surface and stopped painting",
+    "tray returned to verified desktop child",
+    "quit destroyed child and timers"
+  ],
+  "errors": [],
+  "real_explorer_restart_tested": false,
+  "visual_click_through_manually_verified": false
+}

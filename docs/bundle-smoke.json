@@ -1,0 +1,107 @@
+{
+  "active": {
+    "version": "1.0.0",
+    "windows_build": 26200,
+    "elapsed_seconds": 25.024,
+    "cpu_one_core_percent": 4.246,
+    "cpu_whole_machine_percent": 0.177,
+    "working_set_mib": 55.19,
+    "frames": 319,
+    "states": [
+      "flying",
+      "landing",
+      "perched",
+      "takeoff"
+    ],
+    "available_at_exit": true,
+    "display_mode": "desktop",
+    "display_modes_seen": [
+      "desktop"
+    ],
+    "native_safe_at_exit": true,
+    "physical_work_area": {
+      "left": 0,
+      "top": 0,
+      "right": 3840,
+      "bottom": 2088
+    },
+    "dpi_scale": 1.5,
+    "artwork_scale": 1.5
+  },
+  "single_instance": true,
+  "hidden": {
+    "version": "1.0.0",
+    "windows_build": 26200,
+    "elapsed_seconds": 3.024,
+    "cpu_one_core_percent": 0.0,
+    "cpu_whole_machine_percent": 0.0,
+    "working_set_mib": 50.45,
+    "frames": 0,
+    "states": [],
+    "available_at_exit": false,
+    "display_mode": "hidden",
+    "display_modes_seen": [],
+    "native_safe_at_exit": false,
+    "physical_work_area": {
+      "left": 0,
+      "top": 0,
+      "right": 3840,
+      "bottom": 2088
+    },
+    "dpi_scale": 1.5,
+    "artwork_scale": 1.5
+  },
+  "front": {
+    "version": "1.0.0",
+    "windows_build": 26200,
+    "elapsed_seconds": 3.025,
+    "cpu_one_core_percent": 2.583,
+    "cpu_whole_machine_percent": 0.108,
+    "working_set_mib": 51.69,
+    "frames": 32,
+    "states": [
+      "perched"
+    ],
+    "available_at_exit": true,
+    "display_mode": "front",
+    "display_modes_seen": [
+      "front"
+    ],
+    "native_safe_at_exit": true,
+    "physical_work_area": {
+      "left": 0,
+      "top": 0,
+      "right": 3840,
+      "bottom": 2088
+    },
+    "dpi_scale": 1.5,
+    "artwork_scale": 1.5
+  },
+  "paused": {
+    "version": "1.0.0",
+    "windows_build": 26200,
+    "elapsed_seconds": 3.03,
+    "cpu_one_core_percent": 0.516,
+    "cpu_whole_machine_percent": 0.021,
+    "working_set_mib": 53.88,
+    "frames": 1,
+    "states": [
+      "paused"
+    ],
+    "available_at_exit": true,
+    "display_mode": "desktop",
+    "display_modes_seen": [
+      "desktop"
+    ],
+    "native_safe_at_exit": true,
+    "physical_work_area": {
+      "left": 0,
+      "top": 0,
+      "right": 3840,
+      "bottom": 2088
+    },
+    "dpi_scale": 1.5,
+    "artwork_scale": 1.5
+  },
+  "manual_visual_acceptance": "not yet verified"
+}
