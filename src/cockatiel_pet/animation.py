@@ -14,16 +14,37 @@ def gesture_weight(progress):
     return smoothstep(progress / .24) * smoothstep((1 - progress) / .30)
 
 
-def flap_weights(phase):
-    """Three anatomical wing poses, with continuous up/middle/down/middle motion."""
-    positions = (0, 1, 2, 1, 0)
-    t = (phase % 1) * 4
-    index = int(t)
-    blend = smoothstep(t - index)
-    weights = [0.0, 0.0, 0.0]
-    weights[positions[index]] += 1 - blend
-    weights[positions[index + 1]] += blend
-    return tuple(weights)
+def flight_frame(phase):
+    """Six complete anatomical cels; wrap continuously at the cycle boundary."""
+    return int((phase % 1) * 6) % 6
+
+
+@dataclass(frozen=True)
+class BodyMotion:
+    breath: float
+    sway: float
+    tilt: float
+    crest: float
+    fluff: float
+    tail: float
+
+
+def idle_motion(time, frame=0, weight=0, look=0, reacting=False, progress=0):
+    """Independent, slow rhythms anchored above the fixed ankle/branch band.
+
+    Gesture ids: 2/3 neck inclination, 4 small head dip/feather fluff,
+    5 tail settling. No held image replaces the whole bird during idle.
+    """
+    weight = max(0,min(1,weight))
+    turn = (1 if frame == 2 else -1 if frame == 3 else 0)*weight
+    response = gesture_weight(progress) if reacting else 0
+    return BodyMotion(
+        .85*math.sin(time*2.35)+(.8*weight if frame == 4 else 0),
+        .95*math.sin(time*.93)+.35*math.sin(time*1.71),
+        2.4*turn+1.4*look+1.3*response,
+        .75*math.sin(time*2.0+.7)+.3*math.sin(time*3.3),
+        .007*math.sin(time*2.35)+(.022*weight if frame == 4 else 0),
+        1.1*math.sin(time*.93-.65)+(2.3*weight if frame == 5 else 0))
 
 
 @dataclass(frozen=True)
@@ -34,7 +55,7 @@ class IdleSample:
 
 
 class IdleDirector:
-    """Short blinks, head turns and occasional preening, with long quiet gaps."""
+    """Short blinks and neck/feather/tail gestures separated by quiet gaps."""
     def __init__(self, seed=None):
         self.rng = random.Random(None if seed is None else seed ^ 0xC0CA71E1)
         self.time = 0.0

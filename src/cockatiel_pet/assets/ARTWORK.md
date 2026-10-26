@@ -1,55 +1,31 @@
-# Feathered cockatiel artwork — 2026-10-26
+# Original cockatiel artwork — version 1.2.0, 2026-10-26
 
-This is original artwork generated with Codex's built-in **imagegen** tool.
-The running application does not generate images and has no network dependency.
-No images, video, models, or files were extracted from NetEase Cloud Music.
-Its already-open pet UI was visually observed only to understand the requested
-level of realism: cream feathers, slender yellow crest, natural anatomy, and
-quiet companion gestures. No screenshots of the user's music account are saved
-in this repository.
+Both PNGs were generated with Codex's **built-in imagegen tool**, transparent
+background enabled, and copied unchanged into this directory. No CLI/API fallback
+was used. The installed app is fully offline and never generates images.
 
-`cockatiel-atlas.png` is the selected generated PNG, preserved unchanged.
-`atlas.json` describes source regions and anatomical anchors. Six standing poses
-are normalized to the same foot position. A detailed wing region drives a
-continuous two-wing rig with a stable torso/head, rather than jumping between
-different generated flight bodies. All compositing uses premultiplied alpha.
+- `perched-v2.png`: 1254 × 1254 RGBA. Runtime uses neutral and registered blink
+  eyes. The generated tilt/preen reference cells are not used for animation.
+- `flight-v2.png`: 1536 × 1024 RGBA. Six complete anatomical flight poses.
+  The perched sheet was supplied as an identity reference to this generation.
+- `atlas.json`: measured source rectangles, scale, and registration anchors.
 
-## Generation prompt
+The perched feet and branch are part of one original render. Runtime deformation
+keeps logical rows 164–188 fixed and animates the chest/neck/crest above and tail
+below. Blink uses small registered eye patches. Flight selects one complete cel
+at a time, including shoulders, torso, tucked feet and tail. It does not attach
+a detached wing to a standing body or blend multiple exposed wing positions.
 
-Use case: stylized-concept. Asset type: production transparent PNG sprite atlas
-for an original Windows cockatiel companion, a complete 3 by 3 grid of nine equal
-square cells. Create one original consistent lifelike lutino cockatiel,
-cream-white feathered body, softly lemon-yellow face, fine slender swept yellow
-crest, vivid but natural orange cheek patches, small glossy black eyes with
-realistic tiny catchlights, pale horn curved beak, pale pink zygodactyl feet,
-long tapered layered ivory tail. Premium near-photoreal 3D pet rendering with
-fine down and overlapping wing feathers, gentle studio light. Natural juvenile
-cockatiel anatomy, moderately round affectionate body, head not a giant cartoon
-ball, no outlines, no flat vector geometry, no plastic toy look, not a copy of
-any brand character. Orthographic three-quarter view facing screen right.
-Transparent canvas and spaces between birds; no ground, shadows, branch, text,
-grid lines, border, labels or watermark. Fixed camera, identical scale and
-identity, same body center and foot/contact anchor; never crop crest, tail or
-wing tips. Standing poses: neutral, blink, curious tilt, look toward viewer,
-preen, partial wing stretch. Flying poses: wings up, level, down, with stable
-torso and head. Fine feather detail readable around 150 logical pixels tall.
-Use actual alpha transparency, never a painted checkerboard.
+RGB values in fully transparent source pixels are irrelevant to rendering;
+Qt converts the source to premultiplied alpha before filtering/compositing.
+No external image, 3D model, screenshot, music account data, or proprietary
+NetEase asset is included. Only its main-window preview was observable; the
+independent desktop pet was **not captured or directly observed**.
 
-## Final refinement prompt
+## Perched sheet — final prompt
 
-Edit target: the supplied 3x3 cockatiel sprite atlas. Keep the same bird identity,
-lifelike white and cream feathers, yellow crest, orange cheeks, camera
-orientation and nine pose meanings. Remove all stray white/yellow/red pixels,
-speckles, grain, shadows, halos and colored remnants outside each bird. The
-entire space between birds must be clean true transparent alpha=0; only birds
-are nontransparent. Natural feather cutout edges. Re-layout the birds into
-equal 3x3 cells with generous transparent gutters. Scale all nine birds
-consistently smaller, about 70 percent of their previous size. Each bird,
-including every wing tip and tail, should fit wholly inside its cell with
-transparent margins. No drawn cell borders, text or checkerboards. Standing
-feet use the same normalized baseline and contact anchor. Flight torso/head
-positions should match across the three flight frames. Leave empty areas fully
-transparent. This is an animation asset, not a presentation board.
+Use case: stylized-concept. Production animation asset sheet for an original lifelike lutino cockatiel Windows desktop companion. A precise 2 columns x 2 rows grid on real transparent background, equal square cells, generous clear gaps. No text or borders. Four full body renders of EXACTLY THE SAME bird on EXACTLY THE SAME narrow horizontal natural brown branch, identical framing, size, anatomy, lighting and contact. Soft realistic 3D feather rendering, cream white body, pale yellow slender swept crest, orange cheek patches, small pale pink beak, glossy dark eyes, detailed soft feathers, pink scaled feet. Camera nearly frontal, body yaw only 15 degrees, both eyes and BOTH orange cheeks clearly visible, bird face looks toward viewer/screen, elegant realistic proportions, long tail visible descending behind to right. Each branch is horizontal and spans 85% cell width near 78% cell height; both feet anatomically wrap over branch with curved toes and dark claws visibly gripping FRONT AND BACK of branch, no flat floor stance or floating feet. Crest top near 12% cell height, feet near78%, tail may descend toward90%. Top left: neutral, eyes open. Top right: identical neutral with eyelids closed for blink (same head position and branch). Bottom left: gentle inquisitive head inclination to viewer left, feet and branch identical to neutral. Bottom right: head tucked to preen shoulder feathers, body and feet and branch identical. Strict isolation, no shadows on background, no white matte or glow. Full natural branch and toes included in every cell. This replaces a too side-on previous bird. Original design, no brand or other app assets.
 
-The actual generated layout is 1254 × 1254; the source metadata accounts for
-the measured layout rather than assuming the requested output resolution.
+## Flight sheet — final prompt
+
+Use case: stylized-concept. Input image 1 is IDENTITY / feather-material reference only for the SAME original cream-white lutino cockatiel, not a grid to copy. Create a new production FLIGHT animation sprite sheet, precisely 3 columns x 2 rows equal cells on true transparent background. Six full-bodied, anatomically plausible successive wingbeat phases of the same bird. Each cell isolated with large transparent gutters; NOTHING cut off or shared between cells. No branches anywhere. Near frontal three-quarter camera, face yaw 20 degrees toward viewer right, both eyes readable. Airborne body angled slightly diagonally, long tail streaming down-left, BOTH pink feet tucked neatly under belly, neck extended gently. Same body size, head position, tail, tucked feet, facial proportions, color and scale in all 6 cells; only the complete two wings change. Body center exactly at cell center, head around (55%,42%) of each cell, tail tip around (35%,78%). Wings must attach organically to the shoulders and flow coherently into body plumage, NOT detached wing cutouts. Each wing has feathered upper arm, elbow, wrist and long primary fan. Wingbeat cycle read left to right top then bottom: 1 both wings raised high, 2 wings extended outward/up 35 degrees, 3 both wings wide horizontal, 4 both wings down/out 35 degrees with primary tips lowest, 5 wings loosely flexed down/near body on recovery, 6 wings rising bent at elbows/upwards ready for frame1. Wings fill at most 85% of cell width and 80% height. Maintain exact body identity from reference including creamy white feathering, thin pale yellow crest swept back by air, orange cheek patches, glossy black eyes and pale pink beak. Soft realistic polished 3D feather render with subtle warm studio light. No stylized anatomy, no oversized chest, no extra wings, no duplicate bodies or tails, no detached feathers, no gridlines, labels, background color, floor shadow, outline or glow. All 6 full birds must be the same size and wholly contained.

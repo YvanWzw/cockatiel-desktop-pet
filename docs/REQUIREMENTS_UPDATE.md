@@ -34,3 +34,19 @@ artwork with a local QPainter sprite compositor, a stable neck pivot, detailed
 wing layers, short blinks, preening and stretch gestures. It is a 2D layered
 animation renderer, not a real-time 3D engine. Desktop/front/hidden behavior,
 passive mouse observation, configuration and packaging remain available.
+
+## Four visual corrections — version 1.2.0
+
+The user requested a more screen-facing face, correct claw/branch contact,
+coherent flying anatomy and a livelier idle. The user clarified that the actual
+desktop pet, rather than the music application's preview, is the reference.
+The current computer-use window inventory exposes only the music main window;
+the independent desktop pet could not be captured. This limitation was reported
+to the user. No claim of observing its desktop animation is made.
+
+Version 1.2 uses new original near-frontal perched artwork with integrated
+gripping feet/branch, fixed contact pixels during deformation, continuous
+breathing/sway/neck/crest/tail rhythms, and six complete registered airborne cels.
+The previous pasted-wing standing-body renderer is removed. The atlas PNGs are
+shipped unchanged; crop/registration metadata and the runtime compositor produce
+the actual poses shown in the generated previews. The renderer remains 2D.

@@ -177,6 +177,6 @@ class PetController:
                     chirp=self.state == State.REACTING and self.reaction_kind == "click" and self.age < .5,
                     paused=self.state == State.PAUSED, motion=self.state.value,
                     motion_progress=self.age / motion_duration,
-                    flap_phase=(self.time * 6.0) % 1,
+                    flap_phase=(self.time * 4.0) % 1,
                     idle_frame=idle.frame, idle_weight=idle.weight,
                     blink=max(idle.blink, reaction_blink))

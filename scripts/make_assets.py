@@ -43,8 +43,8 @@ def main():
     p.setFont(QFont("Microsoft YaHei" if "Microsoft YaHei" in QFontDatabase.families() else "Segoe UI", 12))
     poses=((20,75,"安静陪伴",Pose(paused=True)),
            (350,75,"歪头看你",Pose(idle_frame=2,idle_weight=1)),
-           (680,75,"梳理羽毛",Pose(idle_frame=4,idle_weight=1)),
-           (20,365,"伸展翅膀",Pose(idle_frame=5,idle_weight=1)),
+           (680,75,"呼吸与蓬羽",Pose(time=.7,idle_frame=4,idle_weight=1)),
+           (20,365,"重心与尾羽",Pose(time=2,idle_frame=5,idle_weight=1)),
            (350,365,"轻盈飞行",Pose(motion="flying",flap_phase=.18,branch_alpha=0,pitch=-8)),
            (680,365,"回应鼠标",Pose(time=.2,reacting=True,motion_progress=.45,chirp=True)))
     for x,y,title,pose in poses:
@@ -57,6 +57,21 @@ def main():
     args.preview.parent.mkdir(parents=True, exist_ok=True)
     if not preview.save(str(args.preview)):
         raise RuntimeError("Could not save preview")
+    flight = QImage(900,560,QImage.Format.Format_ARGB32_Premultiplied)
+    flight.fill(QColor("#f1f2ee"))
+    painter=QPainter(flight)
+    painter.setFont(QFont("Microsoft YaHei",11))
+    painter.setPen(QColor("#343c43"))
+    for i in range(6):
+        x,y=(i%3)*300,(i//3)*280
+        painter.drawText(x+110,y+25,f"飞行姿态 {i+1}")
+        painter.save()
+        painter.translate(x+10,y+40)
+        renderer.paint(painter,Pose(motion="flying",flap_phase=(i+.1)/6,branch_alpha=0))
+        painter.restore()
+    painter.end()
+    if not flight.save(str(args.preview.with_name("flight-cycle.png"))):
+        raise RuntimeError("Could not save flight cels")
 
 
 if __name__ == "__main__":

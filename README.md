@@ -7,11 +7,15 @@ network requests, telemetry, audio, autostart, keyboard hooks, or input injectio
 
 ![Original artwork preview — not a screenshot of native desktop integration](docs/artwork-preview.png)
 
-## 1.1 拟真重制版
+## 1.2 朝向、抓握与动作修正版
 
-新版采用原创奶白色玄凤贴图与分层动画：羽毛细节、细长冠羽、自然站姿、
-短促眨眼、颈部支点歪头、偶尔理毛与伸展。飞行使用稳定身体和连续双翼骨架，
-不在不同身体图片之间来回跳。待机动作有安静间隔，暂停时只绘制静态画面。
+新版采用偏正面的原创奶白色玄凤，双眼与两侧腮红可见。爪子和树枝在同一张
+素材中完成抓握，待机变形固定脚踝以下的接触区。呼吸、重心轻移、颈部侧倾、
+冠羽和尾羽采用不同节奏，配合短促眨眼与偶发蓬羽动作。
+飞行改用六个完整鸟体姿态，包括双翼肩部连接、收脚和尾羽，移除了旧的
+站立身体加旋转翅膀。飞行使用每秒四次的六帧循环，不叠加半透明双翼。
+起飞释放脚部时切换为空中姿态，落地接触时恢复抓枝姿态。
+暂停时只绘制静态画面。
 桌面后方 / 所有应用前方 / 隐藏三种显示模式均保留。
 
 ![Actual renderer animation export](docs/motion-preview.gif)
@@ -19,6 +23,11 @@ network requests, telemetry, audio, autostart, keyboard hooks, or input injectio
 这是运行时渲染器直接导出的动画。素材随程序离线打包，运行时不调用 AI，
 不下载模型、不连接网易云音乐。素材制作提示词见
 [ARTWORK.md](src/cockatiel_pet/assets/ARTWORK.md)。
+
+![Six complete flight cels exported by the renderer](docs/flight-cycle.png)
+
+参考观察的限制：当前窗口工具只能捕获网易云主窗口中的宠物预览，无法直接
+捕获独立桌宠窗口。本版没有宣称已观测或复现其桌面动画，仍为本地 2D 动画。
 
 ## Run the supplied executable
 
@@ -141,14 +150,15 @@ The work was implemented in specification order:
    Classic top-level WorkerW and newer Progman-child WorkerW layouts are handled.
    Creation requests use bounded `SendMessageTimeoutW` calls, including newer
    raised-desktop parameter variants. Ambiguous layouts are rejected.
-2. **B: Artwork.** Version 1.1 replaces the initial outlined vector bird with
-   original generated cream-feathered sprites, cached in premultiplied-alpha
-   images. A stable head/neck rig, seeded `animation.py` gesture director, blink
-   eye patches and continuous two-wing rig provide quiet companion motion.
-   A thin QPainter branch remains anchored independently to the feet.
+2. **B: Artwork.** Version 1.2 uses original near-frontal feathered sprites and
+   six complete flight cels cached in premultiplied-alpha images. Registered eye
+   patches blink. Continuous body deformation keeps the branch/gripping-foot
+   band fixed while the chest, neck, crest and tail move at independent rhythms.
+   The seeded gesture director leaves quiet gaps between larger movements.
 3. **C: Flight.** Pure Python seeded state/geometry modules implement resting,
-   takeoff, eased cubic Bézier flights, landing, reactions, and pause. Branch
-   opacity and body lift are independent. Normal elapsed time is substepped;
+   takeoff, eased cubic Bézier flights, landing, reactions, and pause. Perched
+   artwork stays planted until release; complete airborne anatomy is selected
+   until landing contact. Normal elapsed time is substepped;
    sleep gaps are capped. Resizing re-clamps to a reachable primary-display perch.
 4. **D: Input observation.** `mouse_observer.py` classifies 20 Hz passive samples.
    Win32's actual hit target must belong to a verified Explorer desktop ancestry.

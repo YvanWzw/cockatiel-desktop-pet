@@ -27,9 +27,11 @@ def main():
             time.sleep(1.5)
             front = next(w for w in api.snapshot() if w.pid == process.pid and w.cls.startswith("CockatielFrontSurface_"))
             _, scale = api.primary_display()
-            # This is an opaque pixel inside the right-facing bird's eye/head,
+            # This is an opaque pixel inside the front-facing bird's face,
             # not a transparent corner. No cursor movement or click is sent.
-            point = W.POINT(round(front.rect.left + 163*scale), round(front.rect.top + 81*scale))
+            from cockatiel_pet.renderer import CockatielRenderer,Pose
+            assert CockatielRenderer().image(Pose(paused=True)).pixelColor(140,85).alpha()>128
+            point = W.POINT(round(front.rect.left + 140*scale), round(front.rect.top + 85*scale))
             hit = api.u.WindowFromPoint(point)
             ex = api.u.GetWindowLongPtrW(front.hwnd,-20)
             assert front.visible and ex & (EX_REQUIRED | 8) == EX_REQUIRED | 8

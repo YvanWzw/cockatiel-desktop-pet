@@ -1,7 +1,7 @@
-"""Feathered companion artwork, cached sprite poses and a continuous wing rig.
+"""Offline cockatiel sprites with planted-foot deformation and whole-bird flight.
 
-All images ship with the application. Qt paints the native alpha surface locally;
-there is no runtime image generation, model download, browser, or network call.
+Flight cels contain the complete anatomy: no wing cutout is attached to a standing
+body. The perched branch and gripping toes share one source image and transform.
 """
 from dataclasses import dataclass
 from importlib.resources import files
@@ -9,7 +9,7 @@ import json
 import math
 from PySide6.QtCore import Qt, QPointF, QRectF
 from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen, QIcon, QPixmap
-from .animation import gesture_weight, smoothstep
+from .animation import flight_frame, idle_motion, smoothstep
 from .models import FOOT, SURFACE_WIDTH, SURFACE_HEIGHT
 
 
@@ -34,205 +34,147 @@ class Pose:
 
 
 class SpriteAtlas:
-    """Normalize every pose to one foot anchor, with pre-multiplied alpha."""
+    """Cache premultiplied artwork in a shared logical coordinate system."""
     CACHE_SCALE = 2
 
     def __init__(self):
         resources = files("cockatiel_pet").joinpath("assets")
         self.metadata = json.loads(resources.joinpath("atlas.json").read_text(encoding="utf-8"))
-        raw = resources.joinpath(self.metadata["image"]).read_bytes()
-        self.image = QImage.fromData(raw).convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
-        if self.image.isNull():
-            raise RuntimeError("Bundled cockatiel artwork is missing or unreadable")
-        self.frames = tuple(self._frame(frame) for frame in self.metadata["frames"])
-        self.wing, self.hinge = self._wing()
+        self.images = {}
+        for kind in ("perch", "flight"):
+            data = resources.joinpath(self.metadata[kind]["image"]).read_bytes()
+            image = QImage.fromData(data).convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
+            if image.isNull():
+                raise RuntimeError(f"Bundled {kind} artwork is missing or unreadable")
+            self.images[kind] = image
+        self.frames = self._frames("perch")
+        self.flight = self._frames("flight")
 
-    def _frame(self, frame):
-        cache = QImage(SURFACE_WIDTH * self.CACHE_SCALE, SURFACE_HEIGHT * self.CACHE_SCALE,
-                       QImage.Format.Format_ARGB32_Premultiplied)
-        cache.fill(Qt.GlobalColor.transparent)
-        x, y, w, h = frame["source"]
-        ax, ay = frame["anchor"]
-        scale = self.metadata["logical_scale"]
-        target = QRectF(FOOT.x + (x-ax)*scale, FOOT.y + (y-ay)*scale, w*scale, h*scale)
-        p = QPainter(cache)
-        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        p.scale(self.CACHE_SCALE, self.CACHE_SCALE)
-        p.drawImage(target, self.image, QRectF(x,y,w,h))
-        p.end()
-        return cache
-
-    def _wing(self):
-        data = self.metadata["wing"]
-        x,y,w,h = data["source"]
-        layer = QImage(w,h,QImage.Format.Format_ARGB32_Premultiplied)
-        layer.fill(Qt.GlobalColor.transparent)
-        clip = QPainterPath()
-        for i,(px,py) in enumerate(data["outline"]):
-            if i == 0: clip.moveTo(px-x,py-y)
-            else: clip.lineTo(px-x,py-y)
-        clip.closeSubpath()
-        p=QPainter(layer)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        p.setClipPath(clip)
-        p.drawImage(-x,-y,self.image)
-        p.end()
-        return layer, QPointF(data["hinge"][0]-x,data["hinge"][1]-y)
+    def _frames(self, kind):
+        group = self.metadata[kind]
+        result = []
+        for frame in group["frames"]:
+            image = QImage(SURFACE_WIDTH*2, SURFACE_HEIGHT*2, QImage.Format.Format_ARGB32_Premultiplied)
+            image.fill(Qt.GlobalColor.transparent)
+            x,y,w,h = frame["source"]
+            ax,ay = frame["anchor"]
+            tx,ty = group["target"]
+            scale = group["scale"]
+            target = QRectF(tx+(x-ax)*scale, ty+(y-ay)*scale, w*scale, h*scale)
+            p = QPainter(image)
+            p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+            p.scale(2,2)
+            p.drawImage(target, self.images[kind], QRectF(x,y,w,h))
+            p.end()
+            result.append(image)
+        return tuple(result)
 
 
 class CockatielRenderer:
+    PLANTED_TOP = 164
+    PLANTED_BOTTOM = 188
+
     def __init__(self):
         self.atlas = SpriteAtlas()
-        self.resting_layer = QImage(SURFACE_WIDTH*2,SURFACE_HEIGHT*2,QImage.Format.Format_ARGB32_Premultiplied)
-        self.weighted_frame = QImage(SURFACE_WIDTH*2,SURFACE_HEIGHT*2,QImage.Format.Format_ARGB32_Premultiplied)
-        self.branch = QPainterPath(QPointF(42,179))
-        self.branch.cubicTo(90,179,109,176,140,177)
-        self.branch.cubicTo(178,176,205,178,238,180)
-        self.branch.quadTo(243,182,237,184)
-        self.branch.cubicTo(203,181,174,182,140,183)
-        self.branch.cubicTo(100,182,75,185,43,184)
-        self.branch.quadTo(37,182,42,179)
-        self.branch.closeSubpath()
-        self.full = QPainterPath()
-        self.full.addRect(QRectF(0,0,SURFACE_WIDTH,SURFACE_HEIGHT))
-        self.feet = QPainterPath()
-        self.feet.addRoundedRect(QRectF(105,164,83,22),3,3)
-        self.body_only = self.full.subtracted(self.feet)
-        head_cut=QPainterPath()
-        head_cut.addRect(QRectF(122,10,79,94))
-        self.stable_body=self.full.subtracted(head_cut)
+        self.resting_layer = self.atlas.frames[0].copy()
+        self.eye_clip = QPainterPath()
+        # Closed-eye source is registered to the open eyes, not to its branch.
+        self.eye_clip.addEllipse(QRectF(122.8,73.5,8.5,8))
+        self.eye_clip.addEllipse(QRectF(150.2,73.5,8.5,8))
 
-    def _branch(self,p,alpha):
-        if alpha <= 0: return
+    @staticmethod
+    def _draw(p, image):
+        p.drawImage(QRectF(0,0,SURFACE_WIDTH,SURFACE_HEIGHT), image)
+
+    def _resting(self, p, pose):
+        self.resting_layer = self.atlas.frames[0].copy()
+        if not pose.paused and pose.blink > 0:
+            layer = QPainter(self.resting_layer)
+            layer.scale(2,2)
+            layer.setClipPath(self.eye_clip)
+            layer.setOpacity(max(0,min(1,pose.blink)))
+            self._draw(layer,self.atlas.frames[1])
+            layer.end()
+        if pose.paused:
+            self._draw(p,self.resting_layer)
+            return
+        motion = idle_motion(pose.time,pose.idle_frame,pose.idle_weight,pose.look,
+                             pose.reacting,pose.motion_progress)
+        # A continuous row deformation bends the neck/crest without cutting out
+        # a rectangular head. Every row below the ankle stays exactly planted.
+        def upper(y):
+            planted = smoothstep((self.PLANTED_TOP-y)/90)
+            head = smoothstep((115-y)/40)
+            crest = smoothstep((65-y)/45)
+            dx = motion.sway*planted + motion.tilt*(105-y)*.055*head + motion.crest*crest
+            chest = math.exp(-((y-128)/26)**2)
+            width = 1 + motion.fluff*chest
+            dy = -motion.breath*planted
+            return dx,y+dy,width
         p.save()
-        p.setOpacity(alpha)
-        p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor("#8a7051"))
-        p.drawPath(self.branch)
-        p.setPen(QPen(QColor("#b49a73"),1.1,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
-        p.drawLine(QPointF(51,180),QPointF(113,179))
-        p.drawLine(QPointF(161,178),QPointF(217,181))
-        p.setPen(QPen(QColor("#79664f"),2.3,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
-        twig=QPainterPath(QPointF(205,180))
-        twig.quadTo(219,171,230,171)
-        p.drawPath(twig)
-        p.restore()
-
-    def _sprite(self,p,index,opacity=1):
-        if opacity <= 0: return
-        p.save()
-        p.setOpacity(opacity)
-        p.drawImage(QRectF(0,0,SURFACE_WIDTH,SURFACE_HEIGHT),self.atlas.frames[index])
-        p.restore()
-
-    def _wing(self,p,phase,amount,far=False):
-        if amount <= 0: return
-        # One stable detailed wing texture rotates around its anatomical root.
-        # The head/body never jump between unrelated generated flight pictures.
-        angle = 62 * math.cos(phase * math.tau)
-        p.save()
-        p.setOpacity(amount * (.72 if far else 1))
-        p.translate(148 if far else 136,108)
-        if far: p.scale(-.70,.84)
-        p.rotate(angle * amount)
-        span=.34*(.72+.28*amount)
-        p.scale(span,span)
-        p.translate(-self.atlas.hinge.x(),-self.atlas.hinge.y())
-        p.drawImage(0,0,self.atlas.wing)
-        p.restore()
-
-    def _resting(self,p,pose):
-        frame,weight=(0,0.0) if pose.paused else (pose.idle_frame,pose.idle_weight)
-        if not pose.paused:
-            if pose.reacting:
-                frame,weight=2,.72*gesture_weight(min(1,pose.motion_progress))
-            elif abs(pose.look)>.08 and frame not in (4,5):
-                frame,weight=(3 if pose.look<0 else 2),min(.60,abs(pose.look)*.65)
-        head_angle=(7 if frame==2 else -5 if frame==3 else 0)*weight
-        full_pose=frame in (4,5)
-        if full_pose:
-            # Large anatomical changes use a brief transition, not a prolonged
-            # double exposure of two different head positions.
-            weight=smoothstep(weight/.12)
-        self.resting_layer.fill(Qt.GlobalColor.transparent)
-        layer=QPainter(self.resting_layer)
-        layer.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        layer.scale(2,2)
-        if full_pose and weight:
-            weight=max(0,min(1,weight))
-            layer.setCompositionMode(QPainter.CompositionMode.CompositionMode_Plus)
-            self._add_weighted(layer,0,255-round(weight*255))
-            self._add_weighted(layer,frame,round(weight*255))
-            layer.setClipping(False)
-        else:
-            self._sprite(layer,0)
-        if not pose.paused and pose.blink>0 and frame not in (4,5):
-            # Replace the eye patch instead of painting a second face over it.
-            area=QRectF(132,57,54,43)
-            layer.setClipRect(area)
-            layer.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-            layer.fillRect(area,Qt.GlobalColor.transparent)
-            layer.setCompositionMode(QPainter.CompositionMode.CompositionMode_Plus)
-            self._add_weighted(layer,0,255-round(pose.blink*255))
-            self._add_weighted(layer,1,round(pose.blink*255))
-        layer.end()
-        if full_pose:
-            p.drawImage(QRectF(0,0,SURFACE_WIDTH,SURFACE_HEIGHT),self.resting_layer)
-        else:
-            # Head tracking uses one stable face on a neck pivot. A neutral head
-            # is removed from the body first, eliminating duplicate eyes/beaks.
-            p.save();p.setClipPath(self.stable_body);self._sprite(p,0);p.restore()
+        p.setClipRect(QRectF(0,0,280,self.PLANTED_TOP))
+        for y in range(0,self.PLANTED_TOP,2):
+            dx,ty,width = upper(y)
+            _,bottom,_ = upper(y+2)
+            # Sample the full texture under the strip clip. Cropping tiny
+            # source strips first clamps bilinear filtering at each strip edge
+            # and produces visible horizontal bands on pale feathers.
+            stretch=(bottom-ty)/2
             p.save()
-            p.translate(149,107);p.rotate(head_angle);p.translate(-149,-107)
-            p.setClipRect(QRectF(121,10,82,105))
-            p.drawImage(QRectF(0,0,SURFACE_WIDTH,SURFACE_HEIGHT),self.resting_layer)
+            p.setClipRect(QRectF(0,ty,280,bottom-ty),Qt.ClipOperation.IntersectClip)
+            p.translate(140-140*width+dx,ty-y*stretch)
+            p.scale(width,stretch)
+            self._draw(p,self.resting_layer)
+            p.restore()
+        p.restore()
+        p.drawImage(QRectF(0,self.PLANTED_TOP,280,self.PLANTED_BOTTOM-self.PLANTED_TOP),
+                    self.resting_layer,QRectF(0,self.PLANTED_TOP*2,560,(self.PLANTED_BOTTOM-self.PLANTED_TOP)*2))
+        # Tail is below the branch; its movement eases out of the fixed contact
+        # band rather than moving the toes or warping the bark.
+        for y in range(self.PLANTED_BOTTOM,240,2):
+            dx = motion.tail*smoothstep((y-self.PLANTED_BOTTOM)/28)
+            p.save()
+            p.setClipRect(QRectF(0,y,280,2))
+            p.translate(dx,0)
+            self._draw(p,self.resting_layer)
             p.restore()
 
-    def _add_weighted(self,p,index,alpha):
-        if alpha <= 0: return
-        # Qt's Plus composition with global painter opacity can attenuate the
-        # accumulated destination alpha. Weight each premultiplied source first,
-        # then add at full opacity so feathers and faces never become bleached.
-        painter=QPainter(self.weighted_frame)
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-        painter.drawImage(0,0,self.atlas.frames[index])
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationIn)
-        painter.fillRect(self.weighted_frame.rect(),QColor(255,255,255,alpha))
-        painter.end()
-        p.drawImage(QRectF(0,0,SURFACE_WIDTH,SURFACE_HEIGHT),self.weighted_frame)
+    @staticmethod
+    def airborne(pose):
+        if pose.paused:
+            return False
+        if pose.motion == "takeoff":
+            return pose.motion_progress >= .24
+        if pose.motion == "landing":
+            return pose.motion_progress < .76
+        return pose.motion == "flying" or (pose.wing > 0 and pose.branch_alpha == 0)
 
     def paint(self,p:QPainter,pose:Pose):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        self._branch(p,pose.branch_alpha)
+        flying = self.airborne(pose)
         p.save()
-        p.translate(FOOT.x,FOOT.y-pose.lift)
-        p.rotate(pose.pitch)
+        p.translate(FOOT.x,FOOT.y)
+        if flying:
+            p.translate(0,-pose.lift)
+            p.rotate(pose.pitch)
         p.scale(pose.facing,1)
-        # Subpixel breathing about the planted feet, without bobbing the branch.
-        breath=0 if pose.paused else .0025*math.sin(pose.time*2.0)
-        p.scale(1-breath*.3,1+breath)
         p.translate(-FOOT.x,-FOOT.y)
-        airborne=0.0
-        if not pose.paused:
-            if pose.motion == "takeoff": airborne=smoothstep(pose.motion_progress)
-            elif pose.motion == "landing": airborne=1-smoothstep(pose.motion_progress)
-            elif pose.motion == "flying" or (pose.wing>0 and pose.branch_alpha==0): airborne=1
-        phase=pose.flap_phase
-        self._wing(p,phase+.04,airborne,far=True)
-        if airborne:
-            p.save(); p.setClipPath(self.body_only); self._sprite(p,0); p.restore()
-            p.save(); p.setClipPath(self.feet); self._sprite(p,0,1-airborne); p.restore()
+        if flying:
+            # Cel animation avoids translucent double wings and preserves the
+            # entire rendered shoulder/torso/feet connection on every frame.
+            self._draw(p,self.atlas.flight[flight_frame(pose.flap_phase)])
         else:
             self._resting(p,pose)
-        self._wing(p,phase,airborne)
         p.restore()
-        if pose.chirp:
+        if pose.chirp and not flying:
             p.save()
-            p.setPen(QPen(QColor("#c6a04d"),1.3,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
-            p.translate(140,177-pose.lift); p.scale(pose.facing,1); p.translate(-140,-177)
-            p.drawArc(QRectF(186,73,11,17),-70*16,140*16)
-            p.drawArc(QRectF(190,69,15,25),-60*16,120*16)
+            p.translate(FOOT.x,FOOT.y)
+            p.scale(pose.facing,1)
+            p.translate(-FOOT.x,-FOOT.y)
+            p.setPen(QPen(QColor("#c6a04d"),1.2,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
+            p.drawArc(QRectF(166,74,10,16),-70*16,140*16)
+            p.drawArc(QRectF(170,70,14,24),-60*16,120*16)
             p.restore()
 
     def image(self,pose:Pose,scale=1.0):
@@ -242,8 +184,9 @@ class CockatielRenderer:
         try:
             p.scale(scale,scale)
             self.paint(p,pose)
-        finally: p.end()
+        finally:
+            p.end()
         return image
 
     def icon(self):
-        return QIcon(QPixmap.fromImage(self.image(Pose(paused=True),2).copy(200,40,210,300)))
+        return QIcon(QPixmap.fromImage(self.image(Pose(paused=True),2).copy(205,50,150,270)))

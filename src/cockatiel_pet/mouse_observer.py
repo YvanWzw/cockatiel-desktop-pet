@@ -19,7 +19,7 @@ class Interaction:
 
 def bird_hit(local: Point):
     """Head/body ellipses exclude transparent margins and the entire branch."""
-    return ((local.x - 154) / 25) ** 2 + ((local.y - 84) / 25) ** 2 <= 1 or ((local.x - 140) / 27) ** 2 + ((local.y - 132) / 35) ** 2 <= 1
+    return ((local.x - 140) / 24) ** 2 + ((local.y - 84) / 25) ** 2 <= 1 or ((local.x - 140) / 37) ** 2 + ((local.y - 132) / 35) ** 2 <= 1
 
 
 class MouseObserver:
@@ -41,7 +41,7 @@ class MouseObserver:
         local = to_local(sample.position, anchor, scale)
         if facing < 0:
             local = Point(280 - local.x, local.y)
-        head = Point(154, 84)
+        head = Point(140, 84)
         look = max(-1, min(1, (local.x - head.x) / 80)) * facing if local.distance(head) < 160 else 0
         if not bird_hit(local):
             self.hover_since = None
