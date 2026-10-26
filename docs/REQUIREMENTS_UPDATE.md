@@ -19,3 +19,18 @@ after an explicit tray/config choice, never automatically on desktop-host failur
 Each switch destroys the old surface before creating another. Pointer reactions
 may occur over ordinary applications in front mode, but clicks are never consumed.
 The original specification is retained unchanged as the historical input.
+
+## Visual quality update — 2026-10-26
+
+The user asked for a lifelike cockatiel companion resembling the quality of
+the NetEase Cloud Music pet currently running on their computer, and authorized
+observing its UI. The music pet page and cockatiel preview were visually observed.
+No proprietary images, models, account screenshots, or application files were
+extracted or copied into this project.
+
+This update supersedes the original requirement to draw the entire bird only
+with procedural vector shapes. Version 1.1 bundles original generated feathered
+artwork with a local QPainter sprite compositor, a stable neck pivot, detailed
+wing layers, short blinks, preening and stretch gestures. It is a 2D layered
+animation renderer, not a real-time 3D engine. Desktop/front/hidden behavior,
+passive mouse observation, configuration and packaging remain available.

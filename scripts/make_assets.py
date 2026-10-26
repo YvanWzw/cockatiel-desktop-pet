@@ -5,7 +5,7 @@ from pathlib import Path
 import struct
 import argparse
 from PySide6.QtCore import QByteArray, QBuffer, QIODevice, Qt
-from PySide6.QtGui import QImage, QPainter, QColor, QFont
+from PySide6.QtGui import QImage, QPainter, QColor, QFont, QFontDatabase
 from PySide6.QtWidgets import QApplication
 from cockatiel_pet.renderer import CockatielRenderer, Pose
 
@@ -16,6 +16,10 @@ def main():
     parser.add_argument("--preview", type=Path, default=Path("docs/artwork-preview.png"))
     args = parser.parse_args()
     app = QApplication([])
+    # The offscreen Qt platform has no Windows font database of its own.
+    fonts = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts"
+    for name in ("segoeui.ttf", "msyh.ttc"):
+        if (fonts/name).is_file(): QFontDatabase.addApplicationFont(str(fonts/name))
     renderer = CockatielRenderer()
     image = renderer.image(Pose(paused=True), 3).copy(240, 110, 330, 510).scaled(256, 256, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
     square = QImage(256, 256, QImage.Format.Format_ARGB32_Premultiplied)
@@ -32,15 +36,21 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     # ICO directory with one 256x256 PNG entry (supported since Windows Vista).
     (args.output/"pet.ico").write_bytes(struct.pack("<HHH",0,1,1)+struct.pack("<BBBBHHII",0,0,0,0,1,32,len(png),22)+png)
-    preview = QImage(1000, 360, QImage.Format.Format_ARGB32_Premultiplied)
+    preview = QImage(1000, 650, QImage.Format.Format_ARGB32_Premultiplied)
     preview.fill(QColor("#f1f2ee"))
     p = QPainter(preview)
     p.setPen(QColor("#343c43"))
-    p.setFont(QFont("Segoe UI", 12))
-    for x, title, pose in ((20,"Resting",Pose(paused=True)), (350,"Flying",Pose(time=.1,wing=.9,branch_alpha=0,pitch=-8)), (680,"A quiet hello",Pose(time=.2,reacting=True,chirp=True))):
-        p.drawText(x+90, 48, title)
+    p.setFont(QFont("Microsoft YaHei" if "Microsoft YaHei" in QFontDatabase.families() else "Segoe UI", 12))
+    poses=((20,75,"安静陪伴",Pose(paused=True)),
+           (350,75,"歪头看你",Pose(idle_frame=2,idle_weight=1)),
+           (680,75,"梳理羽毛",Pose(idle_frame=4,idle_weight=1)),
+           (20,365,"伸展翅膀",Pose(idle_frame=5,idle_weight=1)),
+           (350,365,"轻盈飞行",Pose(motion="flying",flap_phase=.18,branch_alpha=0,pitch=-8)),
+           (680,365,"回应鼠标",Pose(time=.2,reacting=True,motion_progress=.45,chirp=True)))
+    for x,y,title,pose in poses:
+        p.drawText(x+90,y-22,title)
         p.save()
-        p.translate(x,75)
+        p.translate(x,y)
         renderer.paint(p,pose)
         p.restore()
     p.end()

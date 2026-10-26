@@ -1,11 +1,11 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "windows_build": 26200,
-  "elapsed_seconds": 14.156,
-  "cpu_one_core_percent": 4.194,
-  "cpu_whole_machine_percent": 0.175,
-  "working_set_mib": 55.89,
-  "frames": 195,
+  "elapsed_seconds": 14.163,
+  "cpu_one_core_percent": 10.481,
+  "cpu_whole_machine_percent": 0.437,
+  "working_set_mib": 75.21,
+  "frames": 211,
   "states": [
     "flying",
     "landing",

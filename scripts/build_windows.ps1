@@ -18,6 +18,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Icon generation failed.' }
     & $Python -m PyInstaller --noconfirm --clean --onedir --windowed --name CockatielDesktopPet `
         --paths (Join-Path $ProjectRoot 'src') `
+        --collect-data cockatiel_pet `
         --icon (Join-Path $AssetsPath 'pet.ico') `
         --manifest (Join-Path $PSScriptRoot 'windows.manifest') `
         --distpath $DistPath --workpath $WorkPath --specpath (Join-Path $ProjectRoot 'work') `

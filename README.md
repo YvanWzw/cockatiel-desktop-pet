@@ -1,11 +1,24 @@
 # Cockatiel Desktop Pet
 
-A silent, original vector cockatiel that rests on a branch and flies around the
+A silent, original feathered cockatiel that rests on a branch and flies around the
 **primary Windows display**, either behind desktop icons or in front of applications.
 Choose the mode from the system tray, or hide the pet. No accounts,
 network requests, telemetry, audio, autostart, keyboard hooks, or input injection.
 
 ![Original artwork preview — not a screenshot of native desktop integration](docs/artwork-preview.png)
+
+## 1.1 拟真重制版
+
+新版采用原创奶白色玄凤贴图与分层动画：羽毛细节、细长冠羽、自然站姿、
+短促眨眼、颈部支点歪头、偶尔理毛与伸展。飞行使用稳定身体和连续双翼骨架，
+不在不同身体图片之间来回跳。待机动作有安静间隔，暂停时只绘制静态画面。
+桌面后方 / 所有应用前方 / 隐藏三种显示模式均保留。
+
+![Actual renderer animation export](docs/motion-preview.gif)
+
+这是运行时渲染器直接导出的动画。素材随程序离线打包，运行时不调用 AI，
+不下载模型、不连接网易云音乐。素材制作提示词见
+[ARTWORK.md](src/cockatiel_pet/assets/ARTWORK.md)。
 
 ## Run the supplied executable
 
@@ -128,8 +141,11 @@ The work was implemented in specification order:
    Classic top-level WorkerW and newer Progman-child WorkerW layouts are handled.
    Creation requests use bounded `SendMessageTimeoutW` calls, including newer
    raised-desktop parameter variants. Ambiguous layouts are rejected.
-2. **B: Artwork.** `renderer.py` draws original cached QPainter paths: gray body,
-   yellow crest, orange cheek, pointed tail, wings and feet on a wooden branch.
+2. **B: Artwork.** Version 1.1 replaces the initial outlined vector bird with
+   original generated cream-feathered sprites, cached in premultiplied-alpha
+   images. A stable head/neck rig, seeded `animation.py` gesture director, blink
+   eye patches and continuous two-wing rig provide quiet companion motion.
+   A thin QPainter branch remains anchored independently to the feet.
 3. **C: Flight.** Pure Python seeded state/geometry modules implement resting,
    takeoff, eased cubic Bézier flights, landing, reactions, and pause. Branch
    opacity and body lift are independent. Normal elapsed time is substepped;
@@ -179,6 +195,7 @@ python scripts\smoke_windows.py --output work\native-smoke.json
 .\scripts\build_windows.ps1 -Python .\.venv\Scripts\python.exe
 python scripts\verify_bundle.py --output work\bundle-smoke.json
 python scripts\probe_front_hit.py --output work\front-hit.json
+python scripts\render_motion_preview.py --output docs\motion-preview.gif
 python scripts\package_release.py
 ```
 
@@ -197,7 +214,9 @@ with the executable. See `THIRD_PARTY_NOTICES.md` and the bundle's `licenses/`.
 See `docs/VALIDATION.md` for executed checks and their limits. Automated tests do
 not send input, modify Explorer, require elevation, or require Explorer on CI.
 Unit tests cover geometry/DPI conversion, seeded paths and timing, transitions,
-pause, reactions/cooldowns, configuration, rendering, and fail-closed host logic.
+pause, reactions/cooldowns, configuration, artwork loading, animation cadence,
+alpha compositing, rendering, and fail-closed host logic. Pillow is used only
+by the developer's GIF preview exporter, not by the running pet.
 
 ## Known limitations
 

@@ -130,6 +130,7 @@ class PetApplication:
             self.animation.stop()
         else:
             moving = self.controller.state in (State.TAKEOFF, State.FLYING, State.LANDING, State.REACTING)
+            moving = moving or bool(self.controller.idle_animation.frame or self.controller.idle_animation.sample().blink > 0)
             fps = self.config.active_fps if moving else self.config.idle_fps
             interval = round(1000 / fps)
             if not self.animation.isActive() or self.animation.interval() != interval:

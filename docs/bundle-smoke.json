@@ -1,12 +1,12 @@
 {
   "active": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "windows_build": 26200,
-    "elapsed_seconds": 25.024,
-    "cpu_one_core_percent": 4.246,
-    "cpu_whole_machine_percent": 0.177,
-    "working_set_mib": 55.19,
-    "frames": 319,
+    "elapsed_seconds": 25.055,
+    "cpu_one_core_percent": 2.619,
+    "cpu_whole_machine_percent": 0.109,
+    "working_set_mib": 75.66,
+    "frames": 357,
     "states": [
       "flying",
       "landing",
@@ -30,12 +30,12 @@
   },
   "single_instance": true,
   "hidden": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "windows_build": 26200,
-    "elapsed_seconds": 3.024,
+    "elapsed_seconds": 3.027,
     "cpu_one_core_percent": 0.0,
     "cpu_whole_machine_percent": 0.0,
-    "working_set_mib": 50.45,
+    "working_set_mib": 64.8,
     "frames": 0,
     "states": [],
     "available_at_exit": false,
@@ -52,12 +52,12 @@
     "artwork_scale": 1.5
   },
   "front": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "windows_build": 26200,
-    "elapsed_seconds": 3.025,
-    "cpu_one_core_percent": 2.583,
-    "cpu_whole_machine_percent": 0.108,
-    "working_set_mib": 51.69,
+    "elapsed_seconds": 3.017,
+    "cpu_one_core_percent": 2.072,
+    "cpu_whole_machine_percent": 0.086,
+    "working_set_mib": 69.3,
     "frames": 32,
     "states": [
       "perched"
@@ -78,12 +78,12 @@
     "artwork_scale": 1.5
   },
   "paused": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "windows_build": 26200,
-    "elapsed_seconds": 3.03,
-    "cpu_one_core_percent": 0.516,
-    "cpu_whole_machine_percent": 0.021,
-    "working_set_mib": 53.88,
+    "elapsed_seconds": 3.032,
+    "cpu_one_core_percent": 1.546,
+    "cpu_whole_machine_percent": 0.064,
+    "working_set_mib": 71.47,
     "frames": 1,
     "states": [
       "paused"

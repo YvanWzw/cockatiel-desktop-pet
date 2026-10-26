@@ -5,6 +5,7 @@ import math
 import random
 from .flight import FlightPlanner, ease
 from .models import Point
+from .animation import IdleDirector
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ class PetController:
         self.look = self.look_target = 0.0
         self.reaction_kind = "hover"
         self.last_reaction = -100.0
+        self.idle_animation = IdleDirector(seed)
 
     def _enter(self, state):
         log.debug("State %s -> %s", self.state.value, state.value)
@@ -118,6 +120,7 @@ class PetController:
 
     def _step(self, dt):
         self.time += dt
+        self.idle_animation.update(dt, self.state == State.PERCHED)
         self.look += (self.look_target - self.look) * (1 - math.exp(-dt * 6))
         remaining = dt
         while remaining > 1e-9:
@@ -165,8 +168,15 @@ class PetController:
             pitch = max(-15, min(15, math.degrees(math.atan2(b.y - a.y, max(1, abs(b.x - a.x)))) * .35)) * self.facing
         elif self.state == State.LANDING:
             wing = .5 * (1 - ease(self.age / self.LANDING_SECONDS))
+        idle = self.idle_animation.sample()
+        motion_duration = self.TAKEOFF_SECONDS if self.state == State.TAKEOFF else self.LANDING_SECONDS if self.state == State.LANDING else self.REACTION_SECONDS
+        reaction_blink = math.sin(math.pi * self.age / .18) ** 2 if self.state == State.REACTING and self.age < .18 else 0
         return Pose(time=self.time, facing=self.facing, wing=wing, lift=self.lift, pitch=pitch,
                     branch_alpha=self.branch_alpha, look=self.look * self.facing,
                     reacting=self.state == State.REACTING,
                     chirp=self.state == State.REACTING and self.reaction_kind == "click" and self.age < .5,
-                    paused=self.state == State.PAUSED)
+                    paused=self.state == State.PAUSED, motion=self.state.value,
+                    motion_progress=self.age / motion_duration,
+                    flap_phase=(self.time * 6.0) % 1,
+                    idle_frame=idle.frame, idle_weight=idle.weight,
+                    blink=max(idle.blink, reaction_blink))

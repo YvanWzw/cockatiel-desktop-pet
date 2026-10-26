@@ -1,6 +1,9 @@
 # Third-party notices
 
-The cockatiel and branch are original QPainter artwork implemented in this project.
+The feathered cockatiel is original artwork created with the built-in imagegen
+tool and bundled locally. The branch, animation rig and compositor are original
+QPainter code. No artwork or model files were copied from NetEase Cloud Music.
+Generation prompts and sprite provenance are in `src/cockatiel_pet/assets/ARTWORK.md`.
 
 The Windows bundle contains dynamically loaded Python and Qt for Python libraries.
 PySide6 Essentials and Shiboken6 are provided by The Qt Company under their wheel's
@@ -12,7 +15,7 @@ license text is explicitly collected from the build interpreter.
 
 Qt remains dynamically linked as separate DLLs under `_internal/`; retain these
 files with the executable. The complete application source and build scripts
-are supplied alongside the bundle. No external character artwork, sound,
+are supplied alongside the bundle. No downloaded third-party character artwork, sound,
 network service, telemetry SDK, or downloaded runtime content is used.
 
 Upstream projects and corresponding source/releases:
